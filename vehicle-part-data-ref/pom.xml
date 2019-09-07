@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.vehicle.parent</groupId>
-		<artifactId>vehicle-maintenane</artifactId>
+		<artifactId>vehicle-maintenance</artifactId>
 		<version>0.0.1</version>
 	</parent>
 	<groupId>com.part.data.ref</groupId>
