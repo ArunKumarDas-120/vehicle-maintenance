@@ -4,8 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.common.model</groupId>
 	<artifactId>common-model</artifactId>
-	<version>0.0.1</version>
-<parent>
+	<parent>
 		<groupId>com.vehicle.parent</groupId>
 		<artifactId>vehicle-maintenance</artifactId>
 		<version>0.0.1</version>
