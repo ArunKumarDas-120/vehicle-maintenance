@@ -16,6 +16,6 @@ spring:
     properties:
       dialect : org.hibernate.dialect.H2Dialect
   activemq:
-    broker-url: tcp://127.0.0.1:61616
+    broker-url: tcp://localhost:61616
     user: admin
     password: admin

@@ -43,7 +43,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiException> handleDataException(DataException ex, WebRequest request) {
 	List<String> errors = new ArrayList<String>();
 	errors.add(ex.getProperty() + ex.getErrorMessage());
-	ApiException apiError = new ApiException(HttpStatus.BAD_REQUEST, ex.getLocalizedMessage(), errors);
-	return new ResponseEntity<ApiException>(apiError, new HttpHeaders(), apiError.getStatus());
+	ApiException apiError = new ApiException(HttpStatus.BAD_REQUEST, ex.getErrorMessage(), errors);
+	return new ResponseEntity<ApiException>(apiError,  apiError.getStatus());
     }
 }

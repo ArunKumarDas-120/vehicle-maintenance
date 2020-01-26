@@ -3,7 +3,7 @@ package com.prt.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.jms.core.JmsTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.common.model.MessageDto;
@@ -11,6 +11,7 @@ import com.common.model.UserDto;
 import com.common.model.VehicleInfoTo;
 import com.prt.entity.VehicleInfoEntity;
 import com.prt.error.DataException;
+import com.prt.event.ActionEvent;
 import com.prt.repo.UserRepo;
 import com.prt.repo.VehicleRepo;
 import com.prt.util.BeanConverter;
@@ -19,13 +20,14 @@ import com.prt.util.BeanConverter;
 public class VehicleService {
 
     private final VehicleRepo vehicleRepo;
-    private final JmsTemplate jmsTemplate;
     private final UserRepo userRepo;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
-    public VehicleService(VehicleRepo vehicleRepo, JmsTemplate jmsTemplate, UserRepo userRepo) {
+    public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo,
+	    ApplicationEventPublisher applicationEventPublisher) {
 	this.vehicleRepo = vehicleRepo;
-	this.jmsTemplate = jmsTemplate;
 	this.userRepo = userRepo;
+	this.applicationEventPublisher = applicationEventPublisher;
     }
 
     public VehicleInfoTo get(final String vehicleNumber) {
@@ -46,11 +48,7 @@ public class VehicleService {
 	VehicleInfoTo savedData = vehicleRepo.findById(vehicleInfoTo.getVehicleNumber())
 		.map(v -> BeanConverter.mapObject(v, VehicleInfoTo.class)).orElseThrow(
 			() -> new DataException("No record found for vehicle " + vehicleInfoTo.getVehicleNumber(), ""));
-	MessageDto messageDto = new MessageDto(user, savedData, "CREATE");
-	jmsTemplate.convertAndSend(messageDto, m -> {
-	    m.setStringProperty("MessageType", messageDto.getMessageSelector());
-	    return m;
-	});
+	applicationEventPublisher.publishEvent(new ActionEvent(new MessageDto(user, savedData, "CREATE")));
 	return savedData;
     }
 
@@ -60,11 +58,7 @@ public class VehicleService {
 	    return BeanConverter.mapObject(v, VehicleInfoTo.class);
 	}).orElseThrow(() -> new DataException("No record found for vehicle " + vehicleNumber, ""));
 	UserDto user = userRepo.getUser(deleted.getUserId());
-	MessageDto messageDto = new MessageDto(user, deleted, "DELETE");
-	jmsTemplate.convertAndSend(messageDto, m -> {
-	    m.setStringProperty("MessageType", messageDto.getMessageSelector());
-	    return m;
-	});
+	applicationEventPublisher.publishEvent(new ActionEvent(new MessageDto(user, deleted, "DELETE")));
 	return deleted;
     }
 }
