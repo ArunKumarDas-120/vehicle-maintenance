@@ -3,6 +3,7 @@ package com.prt.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +23,14 @@ public class VehicleService {
     private final VehicleRepo vehicleRepo;
     private final UserRepo userRepo;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final ApplicationContext applicationContext;
 
     public VehicleService(VehicleRepo vehicleRepo, UserRepo userRepo,
-	    ApplicationEventPublisher applicationEventPublisher) {
+	    ApplicationEventPublisher applicationEventPublisher, ApplicationContext applicationContext) {
 	this.vehicleRepo = vehicleRepo;
 	this.userRepo = userRepo;
 	this.applicationEventPublisher = applicationEventPublisher;
+	this.applicationContext = applicationContext;
     }
 
     public VehicleInfoTo get(final String vehicleNumber) {
@@ -48,7 +51,7 @@ public class VehicleService {
 	VehicleInfoTo savedData = vehicleRepo.findById(vehicleInfoTo.getVehicleNumber())
 		.map(v -> BeanConverter.mapObject(v, VehicleInfoTo.class)).orElseThrow(
 			() -> new DataException("No record found for vehicle " + vehicleInfoTo.getVehicleNumber(), ""));
-	applicationEventPublisher.publishEvent(new ActionEvent(new MessageDto(user, savedData, "CREATE")));
+	applicationEventPublisher.publishEvent(getActionEvent(user, savedData, "CREATE"));
 	return savedData;
     }
 
@@ -58,7 +61,12 @@ public class VehicleService {
 	    return BeanConverter.mapObject(v, VehicleInfoTo.class);
 	}).orElseThrow(() -> new DataException("No record found for vehicle " + vehicleNumber, ""));
 	UserDto user = userRepo.getUser(deleted.getUserId());
-	applicationEventPublisher.publishEvent(new ActionEvent(new MessageDto(user, deleted, "DELETE")));
+	applicationEventPublisher.publishEvent(getActionEvent(user, deleted, "DELETE"));
 	return deleted;
+    }
+
+    private ActionEvent getActionEvent(UserDto user, VehicleInfoTo vehicleInfo, String messageSelector) {
+	return applicationContext.getBean(ActionEvent.class,
+		applicationContext.getBean(MessageDto.class, user, vehicleInfo, messageSelector));
     }
 }
